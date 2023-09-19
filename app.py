@@ -15,7 +15,7 @@ from prophet.plot import plot_plotly, plot_components_plotly
 
 SFairtraiffic = pd.read_csv('Air_Traffic_Passenger_Statistics.csv')
 
-st.subheader('Time Series Analysis on Air Traffic Passenger Statistics')
+st.subheader('Time Series Analysis on :red[San Francisco Air Traffic Passenger] Statistics')
 
 # st.write(SFairtraiffic.head())
 
@@ -60,12 +60,35 @@ airtraffic_monthly_diff = airtraffic_monthly_diff.dropna()
 adfuller(airtraffic_monthly_diff)
 kpss(airtraffic_monthly_diff)
 
-# Decomposition
-decompose = seasonal_decompose(airtraffic_monthly,model="multiplicative")
-decompose.plot()
-st.pyplot()
+# Difference plotting
+fig = px.line(airtraffic_monthly_diff, x=airtraffic_monthly_diff.index, y="Passenger Count", title='Stationary plot')
+st.plotly_chart(fig)
 
+tab3,tab4 = st.tabs(["ACF","PACF"])
 # ACF and PACF
-plot_acf(airtraffic_monthly)
-st.pyplot()
+with tab3:
+   fig2 = plot_acf(airtraffic_monthly_diff,lags=20)
+   st.pyplot(fig2)
 
+with tab4:
+   fig3 = plot_pacf(airtraffic_monthly_diff,lags=20)
+   st.pyplot(fig3)
+
+# Arima model
+arima_model = auto_arima(airtraffic_monthly, start_p=0, start_q = 0)
+
+# arima_model.summary()
+# SARIMAX(0,1,0) = Non Seasonal Model
+# AIC - 6279.860
+
+arima_model.predict(n_periods=24)
+
+index_of_fc = pd.date_range(airtraffic_monthly.index[-1],periods =24,freq='M')
+
+arimapredict =  pd.DataFrame(arima_model.predict(n_periods=24))
+
+arimapredict.index = index_of_fc
+
+# Arima model plotting
+fig = px.line(arimapredict, x=arimapredict.index, y=0, title='Arima Model')
+st.plotly_chart(fig)
