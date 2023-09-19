@@ -1,4 +1,4 @@
-## Project Title: Time Series Analysis on San_Fransisco_Air_Traffic_Passengers_Time_Series
+## Time Series Analysis on San_Fransisco_Air_Traffic_Passengers_Time_Series
 
 
 ### Technology used:
