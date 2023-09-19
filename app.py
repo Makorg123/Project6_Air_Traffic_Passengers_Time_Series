@@ -34,7 +34,7 @@ airtraffic['Activity Period'] = pd.to_datetime(airtraffic['Activity Period'],err
 
 airtraffic_monthly = airtraffic.resample("M",on="Activity Period").sum()
 
-tab1,tab2 = st.tabs(["🗃 Data","📈 Line Chart"])
+tab1,tab2,tab3 = st.tabs(["🗃 Data","📈 Line Chart"," 📈 Stationary Data"])
 
 with tab1:
 # Top 5 rows of data.
@@ -61,19 +61,22 @@ adfuller(airtraffic_monthly_diff)
 kpss(airtraffic_monthly_diff)
 
 # Difference plotting
-fig = px.line(airtraffic_monthly_diff, x=airtraffic_monthly_diff.index, y="Passenger Count", title='Stationary plot')
-st.plotly_chart(fig)
-
-tab3,tab4 = st.tabs(["ACF","PACF"])
-# ACF and PACF
 with tab3:
+   fig = px.line(airtraffic_monthly_diff, x=airtraffic_monthly_diff.index, y="Passenger Count", title='Stationary plot')
+   st.plotly_chart(fig)
+
+st.divider()
+tab4,tab5 = st.tabs(["ACF","PACF"])
+# ACF and PACF
+with tab4:
    fig2 = plot_acf(airtraffic_monthly_diff,lags=20)
    st.pyplot(fig2)
 
-with tab4:
+with tab5:
    fig3 = plot_pacf(airtraffic_monthly_diff,lags=20)
    st.pyplot(fig3)
 
+st.divider()
 # Arima model
 arima_model = auto_arima(airtraffic_monthly, start_p=0, start_q = 0)
 
@@ -89,6 +92,19 @@ arimapredict =  pd.DataFrame(arima_model.predict(n_periods=24))
 
 arimapredict.index = index_of_fc
 
-# Arima model plotting
-fig = px.line(arimapredict, x=arimapredict.index, y=0, title='Arima Model')
-st.plotly_chart(fig)
+# Prophet 
+
+airtraffic_monthly = airtraffic_monthly.reset_index()
+
+airtraffic_monthly.columns = ['ds','y']
+
+m = Prophet()
+m.fit(airtraffic_monthly)
+
+future = m.make_future_dataframe(periods=24,freq='M')
+forecast = m.predict(future)
+fig_1 =  plot_plotly(m,forecast)
+st.plotly_chart(fig_1)
+st.divider()
+fig_2 = plot_components_plotly(m,forecast)
+st.plotly_chart(fig_2)
